@@ -1,0 +1,17 @@
+accessWidener v2 named
+
+accessible class net/minecraft/world/entity/monster/Phantom$AttackPhase
+accessible class net/minecraft/world/entity/monster/Phantom$PhantomAttackStrategyGoal
+accessible class net/minecraft/world/entity/monster/Phantom$PhantomCircleAroundAnchorGoal
+accessible class net/minecraft/world/entity/monster/Phantom$PhantomAttackPlayerTargetGoal
+accessible class net/minecraft/world/entity/monster/Phantom$PhantomMoveTargetGoal
+
+accessible field net/minecraft/world/entity/monster/Phantom attackPhase Lnet/minecraft/world/entity/monster/Phantom$AttackPhase;
+accessible field net/minecraft/world/entity/monster/Phantom moveTargetPoint Lnet/minecraft/world/phys/Vec3;
+accessible field net/minecraft/world/entity/monster/Phantom anchorPoint Lnet/minecraft/core/BlockPos;
+
+accessible method net/minecraft/world/entity/monster/Phantom$PhantomAttackStrategyGoal <init> (Lnet/minecraft/world/entity/monster/Phantom;)V
+accessible method net/minecraft/world/entity/monster/Phantom$PhantomAttackStrategyGoal setAnchorAboveTarget ()V
+accessible method net/minecraft/world/entity/monster/Phantom$PhantomCircleAroundAnchorGoal <init> (Lnet/minecraft/world/entity/monster/Phantom;)V
+accessible method net/minecraft/world/entity/monster/Phantom$PhantomCircleAroundAnchorGoal selectNext ()V
+accessible method net/minecraft/world/entity/monster/Phantom$PhantomAttackPlayerTargetGoal <init> (Lnet/minecraft/world/entity/monster/Phantom;)V

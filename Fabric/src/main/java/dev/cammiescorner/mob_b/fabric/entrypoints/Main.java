@@ -1,13 +1,12 @@
-package dev.upcraft.examplemod.fabric.entrypoints;
+package dev.cammiescorner.mob_b.fabric.entrypoints;
 
 import dev.upcraft.sparkweave.api.annotation.CalledByReflection;
 import net.fabricmc.api.ModInitializer;
 
 @CalledByReflection
 public class Main implements ModInitializer {
+	@Override
+	public void onInitialize() {
 
-    @Override
-    public void onInitialize() {
-
-    }
+	}
 }

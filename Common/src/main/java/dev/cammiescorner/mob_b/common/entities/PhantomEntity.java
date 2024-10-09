@@ -8,16 +8,20 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Phantom;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -53,14 +57,19 @@ public class PhantomEntity extends Phantom {
 			if(getTarget() != null && getTarget().isFallFlying())
 				despawnTimer = 400;
 			else if(despawnTimer-- <= 0)
-				remove(RemovalReason.DISCARDED);
+				tickDeath();
 
 			if(attackPhase == AttackPhase.CIRCLE && getTarget() != null) {
-				List<Entity> mobs = level().getEntities(this, getBoundingBox().inflate(64), EntitySelector.NO_SPECTATORS.and(entity -> entity instanceof Mob mob && mob.canAttack(getTarget()) && !getTarget().equals(mob.getTarget())));
+				List<Entity> mobs = level().getEntities(this, getBoundingBox().inflate(64), EntitySelector.NO_SPECTATORS.and(entity -> entity instanceof Mob mob && mob.canAttack(getTarget())));
 
-				for(Entity entity : mobs)
-					if(entity instanceof Mob mob)
-						mob.setTarget(getTarget());
+				for(Entity entity : mobs) {
+					if(entity instanceof Mob mob && getTarget() != mob.getTarget()) {
+						PathNavigation nav = mob.getNavigation();
+
+						if(nav.getTargetPos() != null && nav.getTargetPos().distSqr(getTarget().blockPosition()) > 16)
+							nav.moveTo(getTarget(), 1.1);
+					}
+				}
 			}
 		}
 
@@ -69,6 +78,14 @@ public class PhantomEntity extends Phantom {
 			hurt(damageSources().flyIntoWall(), Float.MAX_VALUE);
 			player.connection.send(new ClientboundSoundPacket(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.PHANTOM_DEATH), SoundSource.HOSTILE, player.getX(), player.getY(), player.getZ(), 1f, 1f, 0));
 		}
+	}
+
+	@Override
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData) {
+		SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData);
+		anchorPoint = blockPosition().above(10);
+
+		return data;
 	}
 
 	@Override
@@ -159,7 +176,7 @@ public class PhantomEntity extends Phantom {
 
 		@Override
 		public boolean canUse() {
-			return getTarget() != null && attackPhase == Phantom.AttackPhase.CIRCLE;
+			return attackPhase == Phantom.AttackPhase.CIRCLE;
 		}
 
 		@Override
@@ -232,8 +249,10 @@ public class PhantomEntity extends Phantom {
 				yBodyRot = getYRot();
 
 				if(Mth.degreesDifferenceAbs(yaw, getYRot()) < 3f) {
+					float fastSpeed = tickCount - getLastHurtMobTimestamp() > 40 ? 4f : 2f;
+
 					if(getTarget() != null && getTarget().isFallFlying())
-						targetSpeed = Mth.approach(targetSpeed, 4f, 0.01f * (3f / targetSpeed));
+						targetSpeed = Mth.approach(targetSpeed, fastSpeed, 0.01f * (3f / targetSpeed));
 					else
 						targetSpeed = Mth.approach(targetSpeed, 1f, 0.005f * (1f / targetSpeed));
 				}

@@ -3,12 +3,15 @@ package dev.cammiescorner.mob_b.common.spawners;
 import dev.cammiescorner.mob_b.common.entities.PhantomEntity;
 import dev.cammiescorner.mob_b.common.registries.MobBEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.protocol.game.ClientboundSoundEntityPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.monster.Phantom;
 import net.minecraft.world.level.CustomSpawner;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.block.state.BlockState;
@@ -36,7 +39,7 @@ public class CustomPhantomSpawner implements CustomSpawner {
 					return 0;
 
 				for(ServerPlayer player : level.players()) {
-					if(!player.isSpectator() && player.isFallFlying()) {
+					if(!player.isSpectator() && !player.isCreative() && player.isFallFlying()) {
 						BlockPos pos = player.blockPosition();
 
 						if(!level.dimensionType().hasSkyLight() || (pos.getY() >= level.getSeaLevel() && level.canSeeSky(pos))) {
@@ -50,14 +53,18 @@ public class CustomPhantomSpawner implements CustomSpawner {
 								FluidState fluidstate = level.getFluidState(spawnPos);
 
 								if(NaturalSpawner.isValidEmptySpawnBlock(level, spawnPos, blockstate, fluidstate, MobBEntities.PHANTOM.get())) {
-									Phantom phantom = MobBEntities.PHANTOM.get().create(level);
+									PhantomEntity phantom = MobBEntities.PHANTOM.get().create(level);
 
 									if(phantom != null) {
 										phantom.moveTo(spawnPos, 0f, 0f);
 										phantom.finalizeSpawn(level, difficulty, MobSpawnType.NATURAL, null);
 										phantom.setTarget(player);
-										((PhantomEntity.FlightMoveControl) phantom.getMoveControl()).targetSpeed = 3f;
+
+										if(phantom.getMoveControl() instanceof PhantomEntity.FlightMoveControl control)
+											control.targetSpeed = 3f;
+
 										level.addFreshEntity(phantom);
+										player.connection.send(new ClientboundSoundEntityPacket(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.PHANTOM_AMBIENT), SoundSource.HOSTILE, player, 1f, 1f, 0));
 
 										return 1;
 									}

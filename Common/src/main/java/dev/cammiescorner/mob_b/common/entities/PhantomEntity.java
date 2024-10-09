@@ -3,7 +3,7 @@ package dev.cammiescorner.mob_b.common.entities;
 import dev.cammiescorner.mob_b.common.registries.MobBMobEffects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.network.protocol.game.ClientboundSoundEntityPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -60,10 +60,10 @@ public class PhantomEntity extends Phantom {
 				tickDeath();
 
 			if(attackPhase == AttackPhase.CIRCLE && getTarget() != null) {
-				List<Entity> mobs = level().getEntities(this, getBoundingBox().inflate(64), EntitySelector.NO_SPECTATORS.and(entity -> entity instanceof Mob mob && mob.canAttack(getTarget())));
+				List<Entity> mobs = level().getEntities(this, getBoundingBox().inflate(64), EntitySelector.NO_SPECTATORS.and(entity -> entity instanceof Monster mob && mob.canAttack(getTarget())));
 
 				for(Entity entity : mobs) {
-					if(entity instanceof Mob mob && getTarget() != mob.getTarget()) {
+					if(entity instanceof Monster mob && getTarget() != mob.getTarget()) {
 						PathNavigation nav = mob.getNavigation();
 
 						if(nav.getTargetPos() != null && nav.getTargetPos().distSqr(getTarget().blockPosition()) > 16)
@@ -76,7 +76,7 @@ public class PhantomEntity extends Phantom {
 		if(getTarget() instanceof ServerPlayer player && horizontalCollision && getDeltaMovement().length() > 0.25) {
 			playSound(getFallSounds().big(), 1f, 1f);
 			hurt(damageSources().flyIntoWall(), Float.MAX_VALUE);
-			player.connection.send(new ClientboundSoundPacket(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.PHANTOM_DEATH), SoundSource.HOSTILE, player.getX(), player.getY(), player.getZ(), 1f, 1f, 0));
+			player.connection.send(new ClientboundSoundEntityPacket(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.PHANTOM_DEATH), SoundSource.HOSTILE, player, 1f, 1f, 0));
 		}
 	}
 

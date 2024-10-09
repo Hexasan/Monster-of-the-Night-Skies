@@ -1,6 +1,7 @@
 package dev.cammiescorner.mob_b;
 
 import dev.cammiescorner.mob_b.common.registries.MobBEntities;
+import dev.cammiescorner.mob_b.common.registries.MobBMobEffects;
 import dev.upcraft.sparkweave.api.entrypoint.MainEntryPoint;
 import dev.upcraft.sparkweave.api.platform.ModContainer;
 import dev.upcraft.sparkweave.api.platform.services.RegistryService;
@@ -18,5 +19,6 @@ public class MobB implements MainEntryPoint {
 		RegistryService registryService = RegistryService.get();
 
 		MobBEntities.ENTITY_TYPES.accept(registryService);
+		MobBMobEffects.STATUS_EFFECTS.accept(registryService);
 	}
 }

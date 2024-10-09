@@ -57,7 +57,7 @@ public class CustomPhantomSpawner implements CustomSpawner {
 										phantom.finalizeSpawn(level, difficulty, MobSpawnType.NATURAL, null);
 										phantom.setTarget(player);
 										((PhantomEntity.FlightMoveControl) phantom.getMoveControl()).targetSpeed = 3f;
-										level.addFreshEntityWithPassengers(phantom);
+										level.addFreshEntity(phantom);
 
 										return 1;
 									}

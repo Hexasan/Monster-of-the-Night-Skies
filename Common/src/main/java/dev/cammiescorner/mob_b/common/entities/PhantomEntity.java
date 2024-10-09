@@ -1,10 +1,14 @@
 package dev.cammiescorner.mob_b.common.entities;
 
+import dev.cammiescorner.mob_b.common.registries.MobBMobEffects;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -19,6 +23,7 @@ import java.util.List;
 
 public class PhantomEntity extends Phantom {
 	private int despawnTimer = 300;
+	private double accelerationModifier = 1;
 
 	public PhantomEntity(EntityType<? extends Phantom> entityType, Level level) {
 		super(entityType, level);
@@ -58,21 +63,31 @@ public class PhantomEntity extends Phantom {
 						mob.setTarget(getTarget());
 			}
 		}
+
+		if(getTarget() instanceof ServerPlayer player && horizontalCollision && getDeltaMovement().length() > 0.25) {
+			playSound(getFallSounds().big(), 1f, 1f);
+			hurt(damageSources().flyIntoWall(), Float.MAX_VALUE);
+			player.connection.send(new ClientboundSoundPacket(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.PHANTOM_DEATH), SoundSource.HOSTILE, player.getX(), player.getY(), player.getZ(), 1f, 1f, 0));
+		}
 	}
 
 	@Override
 	public float getPickRadius() {
-		return 0.25f;
+		return 0.5f;
 	}
 
 	@Override
-	public boolean hurt(DamageSource source, float amount) {
-		if(source.is(DamageTypes.FLY_INTO_WALL) && amount > 0) {
-			kill();
-			return true;
+	public boolean doHurtTarget(Entity entity) {
+		boolean doHurt = super.doHurtTarget(entity);
+
+		if(doHurt && entity instanceof LivingEntity target) {
+			MobEffectInstance effect = target.getEffect(MobBMobEffects.WEIGHTED.holder());
+			int amplifier = effect != null ? Math.min(effect.getAmplifier() + 1, 3) : 0;
+
+			target.addEffect(new MobEffectInstance(MobBMobEffects.WEIGHTED.holder(), 200, amplifier), this);
 		}
 
-		return super.hurt(source, amount);
+		return doHurt;
 	}
 
 	public class CustomPhantomAttackStrategyGoal extends PhantomAttackStrategyGoal {
@@ -231,9 +246,9 @@ public class PhantomEntity extends Phantom {
 				setXRot(pitch);
 
 				float adjustedYaw = getYRot() + 90f;
-				double accelerationX = (targetSpeed * Mth.cos(adjustedYaw * (float) (Math.PI / 180))) * Math.abs(distanceX / distance);
-				double accelerationY = (targetSpeed * Mth.sin(pitch * (float) (Math.PI / 180))) * Math.abs(distanceY / distance);
-				double accelerationZ = (targetSpeed * Mth.sin(adjustedYaw * (float) (Math.PI / 180))) * Math.abs(distanceZ / distance);
+				double accelerationX = (targetSpeed * Mth.cos(adjustedYaw * (float) (Math.PI / 180))) * Math.abs(distanceX / distance) * accelerationModifier;
+				double accelerationY = (targetSpeed * Mth.sin(pitch * (float) (Math.PI / 180))) * Math.abs(distanceY / distance) * accelerationModifier;
+				double accelerationZ = (targetSpeed * Mth.sin(adjustedYaw * (float) (Math.PI / 180))) * Math.abs(distanceZ / distance) * accelerationModifier;
 				Vec3 vec3d = getDeltaMovement();
 
 				setDeltaMovement(vec3d.add((new Vec3(accelerationX, accelerationY, accelerationZ)).subtract(vec3d).scale(0.2)));

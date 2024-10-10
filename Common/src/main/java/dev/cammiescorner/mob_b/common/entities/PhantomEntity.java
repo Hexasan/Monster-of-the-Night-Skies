@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
+import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.Phantom;
 import net.minecraft.world.entity.player.Player;
@@ -60,10 +61,10 @@ public class PhantomEntity extends Phantom {
 				tickDeath();
 
 			if(attackPhase == AttackPhase.CIRCLE && getTarget() != null) {
-				List<Entity> mobs = level().getEntities(this, getBoundingBox().inflate(64), EntitySelector.NO_SPECTATORS.and(entity -> entity instanceof Monster mob && mob.canAttack(getTarget())));
+				List<Entity> mobs = level().getEntities(this, getBoundingBox().inflate(64), EntitySelector.NO_SPECTATORS.and(entity -> entity instanceof Mob mob && entity instanceof Enemy && mob.canAttack(getTarget())));
 
 				for(Entity entity : mobs) {
-					if(entity instanceof Monster mob && getTarget() != mob.getTarget()) {
+					if(entity instanceof Mob mob && getTarget() != mob.getTarget()) {
 						PathNavigation nav = mob.getNavigation();
 
 						if(nav.getTargetPos() != null && nav.getTargetPos().distSqr(getTarget().blockPosition()) > 16)

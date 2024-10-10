@@ -78,3 +78,4 @@ jobs:
                     webhook-url: ${{ secrets.ANNOUNCEMENT_WEBHOOK_URL }}
                     curseforge-project-id: ${{ steps.publish_fabric.outputs.curseforge-id }}
                     modrinth-project-id: ${{ steps.publish_fabric.outputs.modrinth-id }}
+                    thumbnail-url: https://mod-assets.upcraft.dev/promo/monster-of-the-night-skies/icon_128x.png

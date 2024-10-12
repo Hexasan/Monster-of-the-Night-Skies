@@ -17,10 +17,10 @@
 	"icon": "icon.png",
 	"entrypoints": {
 		"main": [
-			"dev.cammiescorner.mob_b.fabric.entrypoints.Main"
+			"dev.cammiescorner.mobb.fabric.entrypoints.Main"
 		],
 		"client": [
-			"dev.cammiescorner.mob_b.fabric.entrypoints.Client"
+			"dev.cammiescorner.mobb.fabric.entrypoints.Client"
 		]
 	},
 	"custom": {
